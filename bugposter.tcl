@@ -1,5 +1,11 @@
 #!/usr/bin/tclsh
 
+# Reads file specified in argv[0], posts first line as a title and the
+# rest as a body.
+
+# Requires to be run with pwd set as script location to read
+# apikey.tcl.
+
 package require http
 package require tls
 
