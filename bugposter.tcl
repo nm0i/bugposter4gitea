@@ -22,15 +22,17 @@ if {! [file exists $fName]} {
 set chan [open $fName]
 gets $chan line
 set bugTitle $line
+gets $chan line
+set bugLabel $line
 set bugBody ""
 while {[gets $chan line] >= 0} {
-    set bugBody [string cat $bugBody "\n" $line]
+    set bugBody [string cat "    " $bugBody "\n" $line]
 }
 close $chan
 
 http::register https 443 tls::socket
 
-set query [::http::formatQuery "body" $bugBody "title" $bugTitle]
+set query [::http::formatQuery "body" $bugBody "title" [string cat $bugLabel ": " $bugTitle] ]
 
 set httpToken [::http::config -urlencoding utf-8]
 set httpToken [::http::geturl "$hostURI" -headers [list "Authorization" "token $apiKey"] -query $query]
