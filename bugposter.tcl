@@ -6,8 +6,9 @@
 # Requires to be run with pwd set as script location to read
 # apikey.tcl.
 
-package require http
 package require tls
+package require rest
+package require json::write
 
 #set apiKey
 #set hostUri
@@ -24,17 +25,30 @@ gets $chan line
 set bugTitle $line
 gets $chan line
 set bugLabel $line
+switch $bugLabel {
+    bug {
+        set bugLabel 1
+    }
+    typo {
+        set bugLabel 2
+    }
+    idea {
+        set bugLabel 3
+    }
+    default {
+        set bugLabel 1
+    }
+}
 set bugBody ""
 while {[gets $chan line] >= 0} {
     set bugBody [string cat "    " $bugBody "\n" $line]
 }
 close $chan
 
-http::register https 443 tls::socket
+set headers [list "Authorization" "token $apiKey"]
+set config [list method post format json headers $headers]
 
-set query [::http::formatQuery "body" $bugBody "title" [string cat $bugLabel ": " $bugTitle] ]
+set query [list "body" $bugBody "title" $bugTitle "labels" [list $bugLabel]]
 
-set httpToken [::http::config -urlencoding utf-8]
-set httpToken [::http::geturl "$hostURI" -headers [list "Authorization" "token $apiKey"] -query $query]
-
-::http::cleanup $httpToken
+::http::register https 443 ::tls::socket
+::rest::simple $hostURI $query $config
